@@ -1,0 +1,5 @@
+{
+  "startCommand": "python3 webapp/app.py",
+  "autoPort": true,
+  "waitForPort": true
+}

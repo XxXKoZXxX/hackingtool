@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HackingTool Web</title>
+<style>
+:root {
+  --bg:      #09090f;
+  --bg2:     #0f0f1a;
+  --bg3:     #16162a;
+  --border:  #252540;
+  --text:    #d0d0e8;
+  --dim:     #55556a;
+  --green:   #00e87a;
+  --purple:  #7b61ff;
+  --cyan:    #00ccff;
+  --red:     #ff4466;
+  --yellow:  #ffcc44;
+  --radius:  8px;
+  --mono:    'SF Mono','Fira Code','Cascadia Code',Consolas,monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+#hdr {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 18px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.logo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  user-select: none;
+}
+.logo em { color: var(--dim); font-style: normal; }
+#srch {
+  flex: 1;
+  max-width: 380px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  outline: none;
+  transition: border-color .2s;
+}
+#srch:focus { border-color: var(--purple); }
+#srch::placeholder { color: var(--dim); }
+#hdr-stats { margin-left: auto; color: var(--dim); font-size: 11px; white-space: nowrap; }
+
+/* ── Body layout ── */
+#layout {
+  display: grid;
+  grid-template-columns: 196px 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Sidebar ── */
+#sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 6px 0;
+}
+.cat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 13px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background .12s, border-color .12s, color .12s;
+  font-size: 12px;
+}
+.cat:hover { background: var(--bg3); }
+.cat.active { border-left-color: var(--green); background: var(--bg3); color: var(--green); }
+.cat-icon { font-size: 13px; width: 20px; flex-shrink: 0; text-align: center; }
+.cat-lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cat-cnt {
+  font-size: 10px;
+  color: var(--dim);
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.cat-cnt.lit { color: var(--green); }
+
+/* ── Main ── */
+#main { overflow-y: auto; padding: 16px; }
+#sec-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+#sec-sub { font-size: 11px; color: var(--dim); margin-bottom: 14px; min-height: 16px; }
+
+/* ── Grid ── */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(276px, 1fr));
+  gap: 11px;
+}
+
+/* ── Tool card ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  transition: border-color .18s, transform .1s;
+}
+.card:hover { border-color: rgba(123,97,255,.5); transform: translateY(-1px); }
+
+.card-top { display: flex; align-items: flex-start; gap: 8px; }
+.card-name { font-size: 13px; font-weight: 700; flex: 1; line-height: 1.3; }
+.badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.badge.ok { background: rgba(0,232,122,.12); color: var(--green); }
+.badge.no { background: rgba(255,68,102,.08); color: var(--dim); }
+
+.card-desc {
+  font-size: 11px;
+  color: var(--dim);
+  line-height: 1.55;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-cat { font-size: 10px; color: var(--purple); margin-bottom: 2px; }
+
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag {
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(123,97,255,.12);
+  color: var(--purple);
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.reqs { display: flex; flex-wrap: wrap; gap: 4px; }
+.req {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255,204,68,.08);
+  color: var(--yellow);
+}
+
+.actions { display: flex; gap: 6px; margin-top: 2px; }
+.btn {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  background: transparent;
+  color: var(--dim);
+  transition: all .14s;
+  text-align: center;
+}
+.btn:disabled { opacity: .3; cursor: not-allowed; }
+.btn-i { color: var(--cyan); border-color: rgba(0,204,255,.25); }
+.btn-i:not(:disabled):hover { background: rgba(0,204,255,.1); border-color: var(--cyan); }
+.btn-r { color: var(--green); border-color: rgba(0,232,122,.25); }
+.btn-r:not(:disabled):hover { background: rgba(0,232,122,.1); border-color: var(--green); }
+.btn-d { flex: 0 0 auto; padding: 5px 9px; border-color: transparent; }
+.btn-d:hover { color: var(--text); border-color: var(--border); }
+
+/* ── Sub-collection header ── */
+.subcol {
+  grid-column: 1/-1;
+  font-size: 10px;
+  color: var(--purple);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 10px 0 5px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Terminal panel ── */
+#term {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 272px;
+  background: #05050a;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .28s ease;
+  z-index: 100;
+}
+#term.open { transform: translateY(0); }
+.term-hdr {
+  display: flex;
+  align-items: center;
+  padding: 7px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 10px;
+}
+#term-title { color: var(--green); font-size: 12px; flex: 1; }
+#term-status { font-size: 11px; color: var(--dim); }
+.term-x {
+  background: none; border: none; color: var(--dim);
+  cursor: pointer; font-size: 18px; line-height: 1; padding: 1px 5px;
+}
+.term-x:hover { color: var(--red); }
+#term-out {
+  flex: 1;
+  overflow-y: auto;
+  padding: 9px 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.65;
+}
+.tl { white-space: pre-wrap; word-break: break-all; }
+.tl-cmd { color: var(--cyan); }
+.tl-cmd::before { content: '$ '; color: var(--dim); }
+.tl-out { color: var(--text); }
+.tl-ok  { color: var(--green); }
+.tl-err { color: var(--red); }
+
+/* ── Modal ── */
+#overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.72);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+#overlay.open { display: flex; }
+#modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 560px;
+  max-width: 92vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.m-hdr {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+#m-title { font-size: 15px; font-weight: 700; flex: 1; }
+.m-x {
+  background: none; border: none; color: var(--dim);
+  cursor: pointer; font-size: 20px; line-height: 1; padding: 1px 5px;
+}
+.m-x:hover { color: var(--text); }
+.m-body { padding: 14px 18px; overflow-y: auto; flex: 1; }
+.m-sec { margin-bottom: 13px; }
+.m-lbl {
+  font-size: 10px; color: var(--dim);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+.m-val { font-size: 12px; color: var(--text); line-height: 1.7; }
+.m-url { color: var(--cyan); font-size: 11px; text-decoration: none; }
+.m-url:hover { text-decoration: underline; }
+.m-cmds {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 11px;
+  color: var(--cyan);
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.m-ftr {
+  padding: 11px 18px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+}
+
+/* ── Misc ── */
+.empty {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--dim);
+}
+.empty big { font-size: 32px; display: block; margin-bottom: 10px; }
+.spin {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 60px;
+  color: var(--dim);
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <div class="logo">&#128275; Hacking<em>Tool</em></div>
+  <input id="srch" type="search" placeholder="Search 185+ tools by name, tag, or description..." autocomplete="off">
+  <div id="hdr-stats">Loading&#8230;</div>
+</div>
+
+<div id="layout">
+  <nav id="sidebar"></nav>
+  <main id="main">
+    <div id="sec-title">HackingTool Web</div>
+    <div id="sec-sub">Select a category from the sidebar or search above</div>
+    <div id="grid"></div>
+  </main>
+</div>
+
+<div id="term">
+  <div class="term-hdr">
+    <span id="term-title">Terminal</span>
+    <span id="term-status"></span>
+    <button class="term-x" id="term-close">&#215;</button>
+  </div>
+  <div id="term-out"></div>
+</div>
+
+<div id="overlay">
+  <div id="modal">
+    <div class="m-hdr">
+      <div id="m-title"></div>
+      <button class="m-x">&#215;</button>
+    </div>
+    <div class="m-body" id="m-body"></div>
+    <div class="m-ftr" id="m-ftr"></div>
+  </div>
+</div>
+
+<script>
+const $  = id => document.getElementById(id);
+const esc = s => String(s || '')
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+// ── State ──
+const toolMap = new Map();
+let cats = [];
+let activeCat = null;
+let activeES = null;
+
+// ── Boot ──
+(async () => {
+  cats = await fetchJSON('/api/categories');
+  const total = cats.reduce((s,c) => s + c.total, 0);
+  const inst  = cats.reduce((s,c) => s + c.installed, 0);
+  $('hdr-stats').textContent = `${total} tools · ${inst} installed`;
+  renderSidebar();
+})();
+
+async function fetchJSON(url) {
+  const r = await fetch(url);
+  return r.json();
+}
+
+// ── Sidebar ──
+function renderSidebar() {
+  const sb = $('sidebar');
+  sb.innerHTML = '';
+  cats.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'cat';
+    el.dataset.id = c.id;
+    el.innerHTML = `
+      <span class="cat-icon">${c.icon}</span>
+      <span class="cat-lbl">${esc(c.title)}</span>
+      <span class="cat-cnt ${c.installed > 0 ? 'lit' : ''}">${c.installed}/${c.total}</span>`;
+    el.addEventListener('click', () => loadCat(c.id));
+    sb.appendChild(el);
+  });
+}
+
+// ── Category ──
+async function loadCat(id) {
+  activeCat = id;
+  $('srch').value = '';
+  document.querySelectorAll('.cat').forEach(el => el.classList.toggle('active', +el.dataset.id === id));
+  const c = cats[id];
+  $('sec-title').textContent = `${c.icon} ${c.title}`;
+  $('sec-sub').textContent = `${c.total} tools · ${c.installed} installed`;
+  $('grid').innerHTML = '<div class="spin">Loading&#8230;</div>';
+  const tools = await fetchJSON(`/api/category/${id}`);
+  renderTools(tools, false);
+}
+
+// ── Search ──
+let st;
+$('srch').addEventListener('input', e => {
+  clearTimeout(st);
+  const q = e.target.value.trim();
+  if (!q) {
+    if (activeCat !== null) { loadCat(activeCat); return; }
+    $('grid').innerHTML = '';
+    $('sec-title').textContent = 'HackingTool Web';
+    $('sec-sub').textContent = 'Select a category or search above';
+    return;
+  }
+  st = setTimeout(() => doSearch(q), 240);
+});
+
+async function doSearch(q) {
+  document.querySelectorAll('.cat').forEach(el => el.classList.remove('active'));
+  activeCat = null;
+  $('sec-title').textContent = `Search: "${esc(q)}"`;
+  $('sec-sub').textContent = '';
+  $('grid').innerHTML = '<div class="spin">Searching&#8230;</div>';
+  const tools = await fetchJSON(`/api/search?q=${encodeURIComponent(q)}`);
+  $('sec-sub').textContent = `${tools.length} result${tools.length !== 1 ? 's' : ''}`;
+  renderTools(tools, true);
+}
+
+// ── Render tools ──
+function renderTools(tools, showCat) {
+  const grid = $('grid');
+  if (!tools.length) {
+    grid.innerHTML = '<div class="empty"><big>&#128269;</big>No tools found</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  let lastSub = null;
+  tools.forEach(t => {
+    toolMap.set(t.id, t);
+    if (!showCat && t.sub_cat && t.sub_cat !== lastSub) {
+      lastSub = t.sub_cat;
+      const h = document.createElement('div');
+      h.className = 'subcol';
+      h.textContent = t.sub_cat;
+      grid.appendChild(h);
+    }
+    grid.appendChild(makeCard(t, showCat));
+  });
+}
+
+function makeCard(t, showCat) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.toolId = t.id;
+
+  const reqs = makeReqs(t.requires);
+  const tags = (t.tags || []).slice(0, 4).map(tg => `<span class="tag">${esc(tg)}</span>`).join('');
+
+  card.innerHTML = `
+    ${showCat ? `<div class="card-cat">${esc(t.cat_name)}</div>` : ''}
+    <div class="card-top">
+      <div class="card-name">${esc(t.title)}</div>
+      <span class="badge ${t.installed ? 'ok' : 'no'}" id="badge-${t.id}">${t.installed ? '&#10003;' : '&#10007;'}</span>
+    </div>
+    <div class="card-desc">${esc(t.description)}</div>
+    ${tags  ? `<div class="tags">${tags}</div>` : ''}
+    ${reqs  ? `<div class="reqs">${reqs}</div>` : ''}
+    <div class="actions">
+      <button class="btn btn-i" data-action="install" data-id="${t.id}" ${!t.has_install ? 'disabled' : ''}>&#8681; Install</button>
+      <button class="btn btn-r" data-action="run"     data-id="${t.id}" ${!t.has_run     ? 'disabled' : ''}>&#9654; Run</button>
+      <button class="btn btn-d" data-action="info"    data-id="${t.id}">&#183;&#183;&#183;</button>
+    </div>`;
+  return card;
+}
+
+function makeReqs(r) {
+  if (!r) return '';
+  return [['root','Root'],['wifi','WiFi'],['go','Go'],['ruby','Ruby'],['java','Java'],['docker','Docker']]
+    .filter(([k]) => r[k])
+    .map(([,v]) => `<span class="req">${v}</span>`)
+    .join('');
+}
+
+// ── Card action delegation ──
+$('grid').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn || btn.disabled) return;
+  const {action, id} = btn.dataset;
+  const tool = toolMap.get(id);
+  if (!tool) return;
+  if (action === 'info') showDetail(id);
+  else runAction(action, id, tool.title);
+});
+
+// ── Run / Install via SSE ──
+function runAction(action, id, name) {
+  if (activeES) { activeES.close(); activeES = null; }
+
+  $('term-title').textContent = `${action === 'install' ? '&#8681; Installing' : '&#9654; Running'}: ${esc(name)}`;
+  $('term-status').textContent = 'running&#8230;';
+  $('term-out').innerHTML = '';
+  openTerm();
+
+  const es = new EventSource(`/api/${action}/${id}`);
+  activeES = es;
+
+  es.onmessage = ev => {
+    const msg = JSON.parse(ev.data);
+    if (msg.type !== 'done') appendLine(msg);
+    if (msg.type === 'done') {
+      es.close(); activeES = null;
+      $('term-status').textContent = 'done';
+      refreshBadge(id);
+    }
+  };
+  es.onerror = () => {
+    es.close(); activeES = null;
+    $('term-status').textContent = 'disconnected';
+  };
+}
+
+function appendLine(msg) {
+  const out = $('term-out');
+  const d = document.createElement('div');
+  const cls = msg.type === 'cmd' ? 'cmd' : msg.type === 'ok' ? 'ok' : msg.type === 'err' ? 'err' : 'out';
+  d.className = `tl tl-${cls}`;
+  d.textContent = msg.text;
+  out.appendChild(d);
+  out.scrollTop = out.scrollHeight;
+}
+
+function openTerm() {
+  $('term').classList.add('open');
+  $('main').style.paddingBottom = '288px';
+}
+function closeTerm() {
+  $('term').classList.remove('open');
+  $('main').style.paddingBottom = '16px';
+  if (activeES) { activeES.close(); activeES = null; }
+}
+$('term-close').addEventListener('click', closeTerm);
+
+async function refreshBadge(id) {
+  const {installed} = await fetchJSON(`/api/status/${id}`);
+  const b = $(`badge-${id}`);
+  if (b) {
+    b.className = `badge ${installed ? 'ok' : 'no'}`;
+    b.innerHTML = installed ? '&#10003;' : '&#10007;';
+  }
+  // Update toolMap so modal reflects new status
+  const t = toolMap.get(id);
+  if (t) t.installed = installed;
+  // Refresh sidebar counts
+  if (activeCat !== null) {
+    const tools = await fetchJSON(`/api/category/${activeCat}`);
+    const inst = tools.filter(t => t.installed).length;
+    cats[activeCat].installed = inst;
+    const cnt = document.querySelector(`.cat[data-id="${activeCat}"] .cat-cnt`);
+    if (cnt) { cnt.textContent = `${inst}/${cats[activeCat].total}`; cnt.className = `cat-cnt${inst > 0 ? ' lit' : ''}`; }
+    $('sec-sub').textContent = `${cats[activeCat].total} tools · ${inst} installed`;
+  }
+}
+
+// ── Detail modal ──
+function showDetail(id) {
+  const t = toolMap.get(id);
+  if (!t) return;
+
+  $('m-title').textContent = t.title;
+
+  const reqs = makeReqs(t.requires);
+  const tags = (t.tags || []).map(tg => `<span class="tag">${esc(tg)}</span>`).join('');
+  const icmds = (t.install_commands || []).join('\n');
+  const rcmds = (t.run_commands    || []).join('\n');
+
+  $('m-body').innerHTML = `
+    <div class="m-sec">
+      <div class="m-lbl">Description</div>
+      <div class="m-val">${esc(t.description)}</div>
+    </div>
+    ${t.project_url ? `
+    <div class="m-sec">
+      <div class="m-lbl">Project</div>
+      <a class="m-url" href="${esc(t.project_url)}" target="_blank" rel="noopener">${esc(t.project_url)}</a>
+    </div>` : ''}
+    ${tags ? `<div class="m-sec"><div class="m-lbl">Tags</div><div class="tags">${tags}</div></div>` : ''}
+    ${reqs ? `<div class="m-sec"><div class="m-lbl">Requirements</div><div class="reqs">${reqs}</div></div>` : ''}
+    <div class="m-sec">
+      <div class="m-lbl">OS Support</div>
+      <div class="m-val">${esc((t.supported_os || ['all']).join(', '))}</div>
+    </div>
+    <div class="m-sec">
+      <div class="m-lbl">Status</div>
+      <span class="badge ${t.installed ? 'ok' : 'no'}" style="display:inline-block">
+        ${t.installed ? '&#10003; Installed' : '&#10007; Not installed'}
+      </span>
+    </div>
+    ${icmds ? `
+    <div class="m-sec">
+      <div class="m-lbl">Install Commands</div>
+      <div class="m-cmds">${esc(icmds)}</div>
+    </div>` : ''}
+    ${rcmds ? `
+    <div class="m-sec">
+      <div class="m-lbl">Run Commands</div>
+      <div class="m-cmds">${esc(rcmds)}</div>
+    </div>` : ''}`;
+
+  $('m-ftr').innerHTML = `
+    <button class="btn btn-i" style="max-width:140px" ${!t.has_install ? 'disabled' : ''}
+      data-modal-action="install" data-id="${t.id}">&#8681; Install</button>
+    <button class="btn btn-r" style="max-width:140px" ${!t.has_run ? 'disabled' : ''}
+      data-modal-action="run" data-id="${t.id}">&#9654; Run</button>`;
+
+  $('overlay').classList.add('open');
+}
+
+$('m-ftr').addEventListener('click', e => {
+  const btn = e.target.closest('[data-modal-action]');
+  if (!btn || btn.disabled) return;
+  const tool = toolMap.get(btn.dataset.id);
+  if (tool) { closeModal(); runAction(btn.dataset.modalAction, btn.dataset.id, tool.title); }
+});
+
+function closeModal() { $('overlay').classList.remove('open'); }
+$('overlay').addEventListener('click', e => { if (e.target === $('overlay')) closeModal(); });
+document.querySelector('.m-x').addEventListener('click', closeModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeTerm(); } });
+</script>
+</body>
+</html>
